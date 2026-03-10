@@ -782,6 +782,73 @@ export function cleanStalePidFile(): void {
  * Create signal handler factory for graceful shutdown
  * Returns a handler function that can be passed to process.on('SIGTERM') etc.
  */
+/**
+ * Force release a port by finding and killing whatever process occupies it.
+ * Windows-only: uses netstat to find the PID bound to the port, then taskkill.
+ * Used when the port is occupied by a zombie process that doesn't respond to health checks.
+ *
+ * @returns true if the port was released (or was already free), false on failure
+ */
+export async function forceReleasePort(port: number): Promise<boolean> {
+  if (process.platform !== 'win32') {
+    // Unix: kernel releases port on process death, no special handling needed
+    return true;
+  }
+
+  // SECURITY: Validate port is a positive integer
+  if (!Number.isInteger(port) || port <= 0 || port > 65535) {
+    logger.warn('SYSTEM', 'Invalid port for force release', { port });
+    return false;
+  }
+
+  try {
+    // Find PIDs listening on this port
+    const { stdout } = await execAsync(
+      `powershell -NoProfile -NonInteractive -Command "Get-NetTCPConnection -LocalPort ${port} -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess"`,
+      { timeout: HOOK_TIMEOUTS.POWERSHELL_COMMAND, windowsHide: true }
+    );
+
+    const pids = stdout
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0 && /^\d+$/.test(line))
+      .map(line => parseInt(line, 10))
+      .filter(pid => pid > 0 && pid !== process.pid);
+
+    if (pids.length === 0) {
+      logger.debug('SYSTEM', 'No process found listening on port', { port });
+      return true;
+    }
+
+    logger.info('SYSTEM', 'Force releasing port by killing occupying processes', { port, pids });
+
+    for (const pid of pids) {
+      if (!Number.isInteger(pid) || pid <= 0) continue;
+      try {
+        execSync(`taskkill /PID ${pid} /T /F`, {
+          timeout: HOOK_TIMEOUTS.POWERSHELL_COMMAND,
+          stdio: 'ignore',
+          windowsHide: true
+        });
+        logger.info('SYSTEM', 'Killed zombie process occupying port', { port, pid });
+      } catch (error) {
+        logger.debug('SYSTEM', 'Failed to kill process (may have already exited)', { pid }, error as Error);
+      }
+    }
+
+    // Wait briefly for Windows to release the socket
+    await new Promise(r => setTimeout(r, 1000));
+    return true;
+  } catch (error) {
+    logger.error('SYSTEM', 'Failed to force release port', { port }, error as Error);
+    return false;
+  }
+}
+
+/**
+ * Create signal handler factory for graceful shutdown
+ * Returns a handler function that can be passed to process.on('SIGTERM') etc.
+ */
 export function createSignalHandler(
   shutdownFn: () => Promise<void>,
   isShuttingDownRef: { value: boolean }

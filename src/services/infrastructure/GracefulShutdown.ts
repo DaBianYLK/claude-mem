@@ -60,6 +60,22 @@ export async function performGracefulShutdown(config: GracefulShutdownConfig): P
   // Clean up PID file on shutdown
   removePidFile();
 
+  // Register a synchronous 'exit' handler as last-resort defense.
+  // If the async shutdown is interrupted (e.g. SIGKILL follow-up, timeout),
+  // this ensures the server ref is destroyed so the port can be released.
+  if (config.server) {
+    const serverRef = config.server;
+    process.once('exit', () => {
+      try {
+        serverRef.closeAllConnections();
+        serverRef.close();
+        serverRef.unref();
+      } catch {
+        // Synchronous exit handler — best-effort only
+      }
+    });
+  }
+
   // STEP 1: Enumerate all child processes BEFORE we start closing things
   const childPids = await getChildProcesses(process.pid);
   logger.info('SYSTEM', 'Found child processes', { count: childPids.length, pids: childPids });

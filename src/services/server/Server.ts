@@ -91,11 +91,15 @@ export class Server {
    */
   async listen(port: number, host: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      this.server = this.app.listen(port, host, () => {
+      const httpServer = http.createServer(this.app);
+      // exclusive: true prevents SO_REUSEADDR on Windows, ensuring
+      // only one process can bind the port at a time.
+      httpServer.listen({ port, host, exclusive: true }, () => {
         logger.info('SYSTEM', 'HTTP server started', { host, port, pid: process.pid });
         resolve();
       });
-      this.server.on('error', reject);
+      httpServer.on('error', reject);
+      this.server = httpServer;
     });
   }
 

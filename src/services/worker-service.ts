@@ -80,7 +80,8 @@ import {
   spawnDaemon,
   createSignalHandler,
   isPidFileRecent,
-  touchPidFile
+  touchPidFile,
+  forceReleasePort
 } from './infrastructure/ProcessManager.js';
 import {
   isPortInUse,
@@ -951,8 +952,21 @@ async function ensureWorkerStarted(port: number): Promise<boolean> {
       logger.info('SYSTEM', 'Worker is now healthy');
       return true;
     }
-    logger.error('SYSTEM', 'Port in use but worker not responding to health checks');
-    return false;
+    // Port occupied but health check fails — zombie process holding the port.
+    // Force-kill the occupying process so we can bind a fresh worker.
+    logger.warn('SYSTEM', 'Port in use but worker not responding — attempting force release', { port });
+    const released = await forceReleasePort(port);
+    if (!released) {
+      logger.error('SYSTEM', 'Failed to force release port', { port });
+      return false;
+    }
+    const portFree = await waitForPortFree(port, getPlatformTimeout(5000));
+    if (!portFree) {
+      logger.error('SYSTEM', 'Port still occupied after force release', { port });
+      return false;
+    }
+    removePidFile();
+    logger.info('SYSTEM', 'Port force released, proceeding to spawn new worker');
   }
 
   // Windows: skip spawn if a recent attempt already failed (prevents repeated bun.exe popups, issue #921)
@@ -1177,14 +1191,23 @@ async function main() {
         process.exit(0);
       }
 
-      // GUARD 2: Refuse to start if the port is already bound.
-      // Catches the race where two daemons start simultaneously before
-      // either writes a PID file. Must run BEFORE constructing WorkerService
-      // because the constructor registers signal handlers and timers that
-      // prevent the process from exiting even if listen() fails later.
+      // GUARD 2: Refuse to start if the port is already bound by a healthy worker.
+      // If port is bound but health check fails, it's a zombie — force release it.
       if (await isPortInUse(port)) {
-        logger.info('SYSTEM', 'Port already in use, refusing to start duplicate', { port });
-        process.exit(0);
+        const healthy = await waitForHealth(port, 2000);
+        if (healthy) {
+          logger.info('SYSTEM', 'Port already in use by healthy worker, refusing to start duplicate', { port });
+          process.exit(0);
+        }
+        // Zombie occupying port — attempt force release
+        logger.warn('SYSTEM', 'Port bound by unresponsive process — force releasing', { port });
+        await forceReleasePort(port);
+        const freed = await waitForPortFree(port, getPlatformTimeout(5000));
+        if (!freed) {
+          logger.error('SYSTEM', 'Cannot release port, refusing to start', { port });
+          process.exit(0);
+        }
+        removePidFile();
       }
 
       // Prevent daemon from dying silently on unhandled errors.
