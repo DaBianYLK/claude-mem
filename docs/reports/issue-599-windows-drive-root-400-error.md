@@ -1,6 +1,6 @@
 # Technical Report: Issue #599 - Windows Drive Root 400 Error
 
-**Issue:** [#599](https://github.com/thedotmack/claude-mem/issues/599)
+**Issue:** [#599](https://github.com/DaBianYLK/claude-mem/issues/599)
 **Title:** user-message-hook.js fails with 400 error when running from Windows drive root (C:\)
 **Author:** PakAbhishek
 **Created:** 2026-01-07

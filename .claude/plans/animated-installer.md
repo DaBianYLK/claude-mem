@@ -268,7 +268,7 @@ Build a beautiful, animated CLI installer for claude-mem using `@clack/prompts` 
 
 1. **`src/steps/install.ts`** — Installation runner:
    - Use `p.tasks()` for visual progress:
-     - **"Cloning claude-mem repository"**: `git clone --depth 1 https://github.com/thedotmack/claude-mem.git` to temp dir
+     - **"Cloning claude-mem repository"**: `git clone --depth 1 https://github.com/DaBianYLK/claude-mem.git` to temp dir
      - **"Installing dependencies"**: `npm install` in cloned repo
      - **"Building plugin"**: `npm run build` in cloned repo
      - **"Registering plugin"**: Copy plugin files to `~/.claude/plugins/marketplaces/thedotmack/`

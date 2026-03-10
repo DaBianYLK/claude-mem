@@ -377,7 +377,7 @@ File an issue with the Claude Agent SDK requesting:
 
 ## 8. References
 
-- **Issue:** https://github.com/thedotmack/claude-mem/issues/603
+- **Issue:** https://github.com/DaBianYLK/claude-mem/issues/603
 - **Source Files:**
   - `/src/services/worker/SDKAgent.ts` - SDK query invocation
   - `/src/services/worker/SessionManager.ts` - Session lifecycle

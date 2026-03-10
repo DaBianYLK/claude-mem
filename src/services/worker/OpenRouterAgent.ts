@@ -28,8 +28,8 @@ import {
   type WorkerRef
 } from './agents/index.js';
 
-// OpenRouter API endpoint
-const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+// Default OpenRouter API endpoint (overridable via CLAUDE_MEM_OPENROUTER_BASE_URL for Kimi etc.)
+const DEFAULT_OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 // Context window management constants (defaults, overridable via settings)
 const DEFAULT_MAX_CONTEXT_MESSAGES = 20;  // Maximum messages to keep in conversation history
@@ -86,7 +86,7 @@ export class OpenRouterAgent {
   async startSession(session: ActiveSession, worker?: WorkerRef): Promise<void> {
     try {
       // Get OpenRouter configuration
-      const { apiKey, model, siteUrl, appName } = this.getOpenRouterConfig();
+      const { apiKey, model, baseUrl, siteUrl, appName, userAgent, extraHeaders } = this.getOpenRouterConfig();
 
       if (!apiKey) {
         throw new Error('OpenRouter API key not configured. Set CLAUDE_MEM_OPENROUTER_API_KEY in settings or OPENROUTER_API_KEY environment variable.');
@@ -110,7 +110,7 @@ export class OpenRouterAgent {
 
       // Add to conversation history and query OpenRouter with full context
       session.conversationHistory.push({ role: 'user', content: initPrompt });
-      const initResponse = await this.queryOpenRouterMultiTurn(session.conversationHistory, apiKey, model, siteUrl, appName);
+      const initResponse = await this.queryOpenRouterMultiTurn(session.conversationHistory, apiKey, model, siteUrl, appName, baseUrl, userAgent, extraHeaders);
 
       if (initResponse.content) {
         // Add response to conversation history
@@ -180,7 +180,7 @@ export class OpenRouterAgent {
 
           // Add to conversation history and query OpenRouter with full context
           session.conversationHistory.push({ role: 'user', content: obsPrompt });
-          const obsResponse = await this.queryOpenRouterMultiTurn(session.conversationHistory, apiKey, model, siteUrl, appName);
+          const obsResponse = await this.queryOpenRouterMultiTurn(session.conversationHistory, apiKey, model, siteUrl, appName, baseUrl, userAgent, extraHeaders);
 
           let tokensUsed = 0;
           if (obsResponse.content) {
@@ -222,7 +222,7 @@ export class OpenRouterAgent {
 
           // Add to conversation history and query OpenRouter with full context
           session.conversationHistory.push({ role: 'user', content: summaryPrompt });
-          const summaryResponse = await this.queryOpenRouterMultiTurn(session.conversationHistory, apiKey, model, siteUrl, appName);
+          const summaryResponse = await this.queryOpenRouterMultiTurn(session.conversationHistory, apiKey, model, siteUrl, appName, baseUrl, userAgent, extraHeaders);
 
           let tokensUsed = 0;
           if (summaryResponse.content) {
@@ -353,7 +353,10 @@ export class OpenRouterAgent {
     apiKey: string,
     model: string,
     siteUrl?: string,
-    appName?: string
+    appName?: string,
+    baseUrl?: string,
+    userAgent?: string,
+    extraHeaders?: Record<string, string>
   ): Promise<{ content: string; tokensUsed?: number }> {
     // Truncate history to prevent runaway costs
     const truncatedHistory = this.truncateHistory(history);
@@ -361,20 +364,31 @@ export class OpenRouterAgent {
     const totalChars = truncatedHistory.reduce((sum, m) => sum + m.content.length, 0);
     const estimatedTokens = this.estimateTokens(truncatedHistory.map(m => m.content).join(''));
 
+    const apiUrl = baseUrl || DEFAULT_OPENROUTER_API_URL;
+
     logger.debug('SDK', `Querying OpenRouter multi-turn (${model})`, {
       turns: truncatedHistory.length,
       totalChars,
-      estimatedTokens
+      estimatedTokens,
+      apiUrl
     });
 
-    const response = await fetch(OPENROUTER_API_URL, {
+    const headers: Record<string, string> = {
+      'Authorization': `Bearer ${apiKey}`,
+      'HTTP-Referer': siteUrl || 'https://github.com/DaBianYLK/claude-mem',
+      'X-Title': appName || 'claude-mem',
+      'Content-Type': 'application/json',
+    };
+    if (userAgent) {
+      headers['User-Agent'] = userAgent;
+    }
+    if (extraHeaders) {
+      Object.assign(headers, extraHeaders);
+    }
+
+    const response = await fetch(apiUrl, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': siteUrl || 'https://github.com/thedotmack/claude-mem',
-        'X-Title': appName || 'claude-mem',
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify({
         model,
         messages,
@@ -435,7 +449,7 @@ export class OpenRouterAgent {
    * Get OpenRouter configuration from settings or environment
    * Issue #733: Uses centralized ~/.claude-mem/.env for credentials, not random project .env files
    */
-  private getOpenRouterConfig(): { apiKey: string; model: string; siteUrl?: string; appName?: string } {
+  private getOpenRouterConfig(): { apiKey: string; model: string; baseUrl: string; siteUrl?: string; appName?: string; userAgent?: string; extraHeaders: Record<string, string> } {
     const settingsPath = USER_SETTINGS_PATH;
     const settings = SettingsDefaultsManager.loadFromFile(settingsPath);
 
@@ -446,11 +460,26 @@ export class OpenRouterAgent {
     // Model: from settings or default
     const model = settings.CLAUDE_MEM_OPENROUTER_MODEL || 'xiaomi/mimo-v2-flash:free';
 
+    // API base URL: override for Kimi or other OpenAI-compatible APIs
+    const baseUrl = settings.CLAUDE_MEM_OPENROUTER_BASE_URL || DEFAULT_OPENROUTER_API_URL;
+
     // Optional analytics headers
     const siteUrl = settings.CLAUDE_MEM_OPENROUTER_SITE_URL || '';
     const appName = settings.CLAUDE_MEM_OPENROUTER_APP_NAME || 'claude-mem';
 
-    return { apiKey, model, siteUrl, appName };
+    // Optional custom User-Agent
+    const userAgent = settings.CLAUDE_MEM_OPENROUTER_USER_AGENT || '';
+
+    // Optional extra HTTP headers (JSON object)
+    let extraHeaders: Record<string, string> = {};
+    try {
+      const raw = settings.CLAUDE_MEM_OPENROUTER_EXTRA_HEADERS || '{}';
+      extraHeaders = JSON.parse(raw);
+    } catch {
+      logger.warn('SDK', 'Failed to parse CLAUDE_MEM_OPENROUTER_EXTRA_HEADERS, ignoring');
+    }
+
+    return { apiKey, model, baseUrl, siteUrl, appName, userAgent, extraHeaders };
   }
 }
 

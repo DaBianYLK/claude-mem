@@ -763,7 +763,7 @@ Thank you to the 35+ contributors whose PRs were reviewed in this release:
 
 ---
 
-**Full Changelog**: https://github.com/thedotmack/claude-mem/compare/v9.0.17...v9.1.0
+**Full Changelog**: https://github.com/DaBianYLK/claude-mem/compare/v9.0.17...v9.1.0
 
 ## [v9.0.17] - 2026-02-05
 
@@ -842,7 +842,7 @@ The in-process architecture means hooks no longer need to spawn separate worker 
 - Better resource utilization
 - Elimination of process spawn failures on Windows
 
-Full PR: https://github.com/thedotmack/claude-mem/pull/722
+Full PR: https://github.com/DaBianYLK/claude-mem/pull/722
 
 ## [v9.0.13] - 2026-02-05
 
@@ -908,7 +908,7 @@ After a worker restart, stale `memory_session_id` values in the database could c
 Thanks to @bigph00t for this fix! Fixes #817.
 
 ---
-**Full Changelog**: https://github.com/thedotmack/claude-mem/compare/v9.0.10...v9.0.11
+**Full Changelog**: https://github.com/DaBianYLK/claude-mem/compare/v9.0.10...v9.0.11
 
 ## [v9.0.10] - 2026-01-26
 
@@ -970,7 +970,7 @@ This release fixes a critical issue where Claude haiku subprocesses spawned by t
 - `src/services/worker/SessionManager.ts`: Verify subprocess exit on delete
 - `src/services/worker-service.ts`: Start/stop orphan reaper
 
-**Full Changelog**: https://github.com/thedotmack/claude-mem/compare/v9.0.7...v9.0.8
+**Full Changelog**: https://github.com/DaBianYLK/claude-mem/compare/v9.0.7...v9.0.8
 
 Fixes #737
 
@@ -1038,7 +1038,7 @@ This release adds the `/do` and `/make-plan` development commands to the plugin 
 
 ### Full Changelog
 
-https://github.com/thedotmack/claude-mem/compare/v9.0.3...v9.0.4
+https://github.com/DaBianYLK/claude-mem/compare/v9.0.3...v9.0.4
 
 ## [v9.0.3] - 2026-01-10
 
@@ -1076,7 +1076,7 @@ Fixed an issue where the worker service startup wasn't producing proper JSON sta
 
 ---
 
-**Full Changelog**: https://github.com/thedotmack/claude-mem/compare/v9.0.1...v9.0.2
+**Full Changelog**: https://github.com/DaBianYLK/claude-mem/compare/v9.0.1...v9.0.2
 
 ## [v9.0.1] - 2026-01-08
 
@@ -1111,7 +1111,7 @@ Fixed an issue where the worker service startup wasn't producing proper JSON sta
 - Removed hardcoded fake token counts from context injection
 - Standardized Claude Code 2.1.0 note wording across documentation
 
-**Full Changelog**: https://github.com/thedotmack/claude-mem/compare/v9.0.0...v9.0.1
+**Full Changelog**: https://github.com/DaBianYLK/claude-mem/compare/v9.0.0...v9.0.1
 
 ## [v9.0.0] - 2026-01-06
 
@@ -1176,7 +1176,7 @@ Version 9.0.0 introduces the **Live Context System** - a major new capability th
 
 ---
 
-**Full Changelog**: https://github.com/thedotmack/claude-mem/compare/v8.5.10...v9.0.0
+**Full Changelog**: https://github.com/DaBianYLK/claude-mem/compare/v8.5.10...v9.0.0
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 

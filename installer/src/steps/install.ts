@@ -101,7 +101,7 @@ export async function runInstallation(selectedIDEs: IDE[]): Promise<void> {
       task: async (message) => {
         message('Downloading latest release...');
         execSync(
-          `git clone --depth 1 https://github.com/thedotmack/claude-mem.git "${tempDir}"`,
+          `git clone --depth 1 https://github.com/DaBianYLK/claude-mem.git "${tempDir}"`,
           { stdio: 'pipe' },
         );
         return `Repository cloned ${pc.green('OK')}`;

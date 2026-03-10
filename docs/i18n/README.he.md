@@ -2,7 +2,7 @@
 
 <h1 align="center">
   <br>
-  <a href="https://github.com/thedotmack/claude-mem">
+  <a href="https://github.com/DaBianYLK/claude-mem">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/claude-mem-logo-for-dark-mode.webp">
       <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/claude-mem-logo-for-light-mode.webp">
@@ -75,7 +75,7 @@
 <br>
 
 <p align="center">
-  <a href="https://github.com/thedotmack/claude-mem">
+  <a href="https://github.com/DaBianYLK/claude-mem">
     <picture>
       <img src="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/cm-preview.gif" alt="Claude-Mem Preview" width="800">
     </picture>
@@ -294,8 +294,8 @@ npm run bug-report
 ## תמיכה
 
 - **תיעוד**: [docs/](docs/)
-- **בעיות**: [GitHub Issues](https://github.com/thedotmack/claude-mem/issues)
-- **מאגר**: [github.com/thedotmack/claude-mem](https://github.com/thedotmack/claude-mem)
+- **בעיות**: [GitHub Issues](https://github.com/DaBianYLK/claude-mem/issues)
+- **מאגר**: [github.com/thedotmack/claude-mem](https://github.com/DaBianYLK/claude-mem)
 - **מחבר**: Alex Newman ([@thedotmack](https://github.com/thedotmack))
 
 ---

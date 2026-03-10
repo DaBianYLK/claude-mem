@@ -346,7 +346,7 @@ export async function updateFolderClaudeMdFiles(
 
   // Track folders containing CLAUDE.md files that were read/modified in this observation.
   // We must NOT update these - it would cause "file modified since read" errors in Claude Code.
-  // See: https://github.com/thedotmack/claude-mem/issues/859
+  // See: https://github.com/DaBianYLK/claude-mem/issues/859
   const foldersWithActiveClaudeMd = new Set<string>();
 
   // First pass: identify folders with actively-used CLAUDE.md files

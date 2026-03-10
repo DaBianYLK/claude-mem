@@ -1,11 +1,11 @@
 {
-  "name": "thedotmack",
+  "name": "DaBianYLK",
   "owner": {
-    "name": "Alex Newman"
+    "name": "DaBianYLK"
   },
   "metadata": {
-    "description": "Plugins by Alex Newman (thedotmack)",
-    "homepage": "https://github.com/thedotmack/claude-mem"
+    "description": "Plugins by DaBianYLK",
+    "homepage": "https://github.com/DaBianYLK/claude-mem"
   },
   "plugins": [
     {

@@ -1930,7 +1930,7 @@ async function runInstallation(selectedIDEs) {
       task: async (message) => {
         message("Downloading latest release...");
         execSync3(
-          `git clone --depth 1 https://github.com/thedotmack/claude-mem.git "${tempDir}"`,
+          `git clone --depth 1 https://github.com/DaBianYLK/claude-mem.git "${tempDir}"`,
           { stdio: "pipe" }
         );
         return `Repository cloned ${import_picocolors6.default.green("OK")}`;
