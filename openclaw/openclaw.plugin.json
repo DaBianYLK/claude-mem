@@ -4,7 +4,7 @@
   "description": "Official OpenClaw plugin for Claude-Mem. Records observations from embedded runner sessions and streams them to messaging channels.",
   "kind": "memory",
   "version": "10.4.1",
-  "author": "thedotmack",
+  "author": "DaBianYLK",
   "homepage": "https://claude-mem.com",
   "skills": ["skills/make-plan", "skills/do"],
   "configSchema": {

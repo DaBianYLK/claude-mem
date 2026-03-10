@@ -12,7 +12,7 @@ export async function runWelcome(): Promise<InstallMode> {
   p.log.info(`Platform: ${process.platform} (${process.arch})`);
 
   const settingsExist = existsSync(expandHome('~/.claude-mem/settings.json'));
-  const pluginExist = existsSync(expandHome('~/.claude/plugins/marketplaces/thedotmack/'));
+  const pluginExist = existsSync(expandHome('~/.claude/plugins/marketplaces/DaBianYLK/'));
 
   const alreadyInstalled = settingsExist && pluginExist;
 

@@ -6,7 +6,7 @@ import { homedir } from 'os';
 import { expandHome } from '../utils/system.js';
 import { findBinary } from '../utils/dependencies.js';
 
-const MARKETPLACE_DIR = join(homedir(), '.claude', 'plugins', 'marketplaces', 'thedotmack');
+const MARKETPLACE_DIR = join(homedir(), '.claude', 'plugins', 'marketplaces', 'DaBianYLK');
 
 const HEALTH_CHECK_INTERVAL_MS = 1000;
 const HEALTH_CHECK_MAX_ATTEMPTS = 30;

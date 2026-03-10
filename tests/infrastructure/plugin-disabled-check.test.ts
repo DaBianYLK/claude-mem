@@ -8,7 +8,7 @@ import { isPluginDisabledInClaudeSettings } from '../../src/shared/plugin-state.
  * Tests for isPluginDisabledInClaudeSettings() (#781).
  *
  * The function reads CLAUDE_CONFIG_DIR/settings.json and checks if
- * enabledPlugins["claude-mem@thedotmack"] === false.
+ * enabledPlugins["claude-mem@DaBianYLK"] === false.
  *
  * We test by setting CLAUDE_CONFIG_DIR to a temp directory with mock settings.
  */
@@ -44,7 +44,7 @@ describe('isPluginDisabledInClaudeSettings (#781)', () => {
   it('should return false when plugin is explicitly enabled', () => {
     const settings = {
       enabledPlugins: {
-        'claude-mem@thedotmack': true
+        'claude-mem@DaBianYLK': true
       }
     };
     writeFileSync(join(tempDir, 'settings.json'), JSON.stringify(settings));
@@ -54,7 +54,7 @@ describe('isPluginDisabledInClaudeSettings (#781)', () => {
   it('should return true when plugin is explicitly disabled', () => {
     const settings = {
       enabledPlugins: {
-        'claude-mem@thedotmack': false
+        'claude-mem@DaBianYLK': false
       }
     };
     writeFileSync(join(tempDir, 'settings.json'), JSON.stringify(settings));

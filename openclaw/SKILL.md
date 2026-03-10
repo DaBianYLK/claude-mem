@@ -76,10 +76,10 @@ curl http://localhost:37777/api/health
 
 #### If Claude Code has claude-mem installed
 
-If claude-mem is installed as a Claude Code plugin (at `~/.claude/plugins/marketplaces/thedotmack/`), start the worker from that installation:
+If claude-mem is installed as a Claude Code plugin (at `~/.claude/plugins/marketplaces/DaBianYLK/`), start the worker from that installation:
 
 ```bash
-cd ~/.claude/plugins/marketplaces/thedotmack
+cd ~/.claude/plugins/marketplaces/DaBianYLK
 npm run worker:restart
 ```
 
@@ -415,7 +415,7 @@ A background service connects to the worker's SSE stream and forwards `new_obser
 | Problem | What to check |
 |---------|---------------|
 | Worker health check fails | Is bun installed? (`bun --version`). Is something else on port 37777? (`lsof -i :37777`). Try running directly: `bun plugin/scripts/worker-service.cjs start` |
-| Worker started from Claude Code install but not responding | Check `cd ~/.claude/plugins/marketplaces/thedotmack && npm run worker:status`. May need `npm run worker:restart`. |
+| Worker started from Claude Code install but not responding | Check `cd ~/.claude/plugins/marketplaces/DaBianYLK && npm run worker:status`. May need `npm run worker:restart`. |
 | Worker started from cloned repo but not responding | Check `cd /path/to/claude-mem && npm run worker:status`. Make sure you ran `npm install && npm run build` first. |
 | No MEMORY.md appearing | Check that `syncMemoryFile` is not set to `false`. Verify the agent's event context includes `workspaceDir`. |
 | Observations not being recorded | Check gateway logs for `[claude-mem]` messages. The worker must be running and reachable on localhost:37777. |

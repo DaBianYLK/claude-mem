@@ -5,9 +5,9 @@
   <br>
   <a href="https://github.com/DaBianYLK/claude-mem">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/claude-mem-logo-for-dark-mode.webp">
-      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/claude-mem-logo-for-light-mode.webp">
-      <img src="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/claude-mem-logo-for-light-mode.webp" alt="Claude-Mem" width="400">
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/DaBianYLK/claude-mem/main/docs/public/claude-mem-logo-for-dark-mode.webp">
+      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/DaBianYLK/claude-mem/main/docs/public/claude-mem-logo-for-light-mode.webp">
+      <img src="https://raw.githubusercontent.com/DaBianYLK/claude-mem/main/docs/public/claude-mem-logo-for-light-mode.webp" alt="Claude-Mem" width="400">
     </picture>
   </a>
   <br>
@@ -58,7 +58,7 @@
   <a href="package.json">
     <img src="https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg" alt="Node">
   </a>
-  <a href="https://github.com/thedotmack/awesome-claude-code">
+  <a href="https://github.com/DaBianYLK/awesome-claude-code">
     <img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome Claude Code">
   </a>
 </p>
@@ -66,9 +66,9 @@
 <p align="center">
   <a href="https://trendshift.io/repositories/15496" target="_blank">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/trendshift-badge-dark.svg">
-      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/trendshift-badge.svg">
-      <img src="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/trendshift-badge.svg" alt="thedotmack/claude-mem | Trendshift" width="250" height="55"/>
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/DaBianYLK/claude-mem/main/docs/public/trendshift-badge-dark.svg">
+      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/DaBianYLK/claude-mem/main/docs/public/trendshift-badge.svg">
+      <img src="https://raw.githubusercontent.com/DaBianYLK/claude-mem/main/docs/public/trendshift-badge.svg" alt="DaBianYLK/claude-mem | Trendshift" width="250" height="55"/>
     </picture>
   </a>
 </p>
@@ -78,7 +78,7 @@
 <p align="center">
   <a href="https://github.com/DaBianYLK/claude-mem">
     <picture>
-      <img src="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/cm-preview.gif" alt="Claude-Mem Preview" width="800">
+      <img src="https://raw.githubusercontent.com/DaBianYLK/claude-mem/main/docs/public/cm-preview.gif" alt="Claude-Mem Preview" width="800">
     </picture>
   </a>
 </p>
@@ -104,7 +104,7 @@
 Spusťte nové sezení Claude Code v terminálu a zadejte následující příkazy:
 
 ```
-> /plugin marketplace add thedotmack/claude-mem
+> /plugin marketplace add DaBianYLK/claude-mem
 
 > /plugin install claude-mem
 ```
@@ -255,7 +255,7 @@ Běžné problémy a řešení najdete v **[Průvodci řešením problémů](htt
 Vytvořte komplexní hlášení chyby pomocí automatického generátoru:
 
 ```bash
-cd ~/.claude/plugins/marketplaces/thedotmack
+cd ~/.claude/plugins/marketplaces/DaBianYLK
 npm run bug-report
 ```
 
@@ -277,7 +277,7 @@ Pracovní postup pro přispívání najdete v [Průvodci vývojem](https://docs.
 
 Tento projekt je licencován pod **GNU Affero General Public License v3.0** (AGPL-3.0).
 
-Copyright (C) 2025 Alex Newman (@thedotmack). Všechna práva vyhrazena.
+Copyright (C) 2025 Alex Newman (@DaBianYLK). Všechna práva vyhrazena.
 
 Úplné podrobnosti najdete v souboru [LICENSE](LICENSE).
 
@@ -296,8 +296,8 @@ Copyright (C) 2025 Alex Newman (@thedotmack). Všechna práva vyhrazena.
 
 - **Dokumentace**: [docs/](docs/)
 - **Problémy**: [GitHub Issues](https://github.com/DaBianYLK/claude-mem/issues)
-- **Repositář**: [github.com/thedotmack/claude-mem](https://github.com/DaBianYLK/claude-mem)
-- **Autor**: Alex Newman ([@thedotmack](https://github.com/thedotmack))
+- **Repositář**: [github.com/DaBianYLK/claude-mem](https://github.com/DaBianYLK/claude-mem)
+- **Autor**: Alex Newman ([@DaBianYLK](https://github.com/DaBianYLK))
 
 ---
 

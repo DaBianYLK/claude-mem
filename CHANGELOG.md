@@ -688,8 +688,8 @@ Closed 37+ duplicate/stale/invalid issues across multiple triage phases, signifi
 - **Project exclusion setting** — \`CLAUDE_MEM_EXCLUDED_PROJECTS\` glob patterns to exclude entire projects from tracking (PR #920 by @Spunky84)
 - **Folder exclude setting** — \`CLAUDE_MEM_FOLDER_MD_EXCLUDE\` JSON array to exclude paths from CLAUDE.md generation, fixing Xcode/drizzle build conflicts (PR #699 by @leepokai, closes #620)
 - **Folder CLAUDE.md opt-in** — \`CLAUDE_MEM_FOLDER_CLAUDEMD_ENABLED\` now defaults to \`false\` (opt-in) instead of always-on (PR #913 by @superbiche)
-- **Generate/clean CLI commands** — \`generate\` and \`clean\` commands for CLAUDE.md management with \`--dry-run\` support (PR #657 by @thedotmack)
-- **Ragtime email investigation** — Batch processor for email investigation workflows (PR #863 by @thedotmack)
+- **Generate/clean CLI commands** — \`generate\` and \`clean\` commands for CLAUDE.md management with \`--dry-run\` support (PR #657 by @DaBianYLK)
+- **Ragtime email investigation** — Batch processor for email investigation workflows (PR #863 by @DaBianYLK)
 
 ### Hook Resilience (Fail-Open Architecture)
 

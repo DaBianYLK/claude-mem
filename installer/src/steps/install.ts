@@ -6,7 +6,7 @@ import { join } from 'path';
 import { homedir, tmpdir } from 'os';
 import type { IDE } from './ide-selection.js';
 
-const MARKETPLACE_DIR = join(homedir(), '.claude', 'plugins', 'marketplaces', 'thedotmack');
+const MARKETPLACE_DIR = join(homedir(), '.claude', 'plugins', 'marketplaces', 'DaBianYLK');
 const PLUGINS_DIR = join(homedir(), '.claude', 'plugins');
 const CLAUDE_SETTINGS_PATH = join(homedir(), '.claude', 'settings.json');
 
@@ -30,10 +30,10 @@ function registerMarketplace(): void {
   const knownMarketplacesPath = join(PLUGINS_DIR, 'known_marketplaces.json');
   const knownMarketplaces = readJsonFile(knownMarketplacesPath);
 
-  knownMarketplaces['thedotmack'] = {
+  knownMarketplaces['DaBianYLK'] = {
     source: {
       source: 'github',
-      repo: 'thedotmack/claude-mem',
+      repo: 'DaBianYLK/claude-mem',
     },
     installLocation: MARKETPLACE_DIR,
     lastUpdated: new Date().toISOString(),
@@ -51,10 +51,10 @@ function registerPlugin(version: string): void {
   if (!installedPlugins.version) installedPlugins.version = 2;
   if (!installedPlugins.plugins) installedPlugins.plugins = {};
 
-  const pluginCachePath = join(PLUGINS_DIR, 'cache', 'thedotmack', 'claude-mem', version);
+  const pluginCachePath = join(PLUGINS_DIR, 'cache', 'DaBianYLK', 'claude-mem', version);
   const now = new Date().toISOString();
 
-  installedPlugins.plugins['claude-mem@thedotmack'] = [
+  installedPlugins.plugins['claude-mem@DaBianYLK'] = [
     {
       scope: 'user',
       installPath: pluginCachePath,
@@ -78,7 +78,7 @@ function enablePluginInClaudeSettings(): void {
   const settings = readJsonFile(CLAUDE_SETTINGS_PATH);
 
   if (!settings.enabledPlugins) settings.enabledPlugins = {};
-  settings.enabledPlugins['claude-mem@thedotmack'] = true;
+  settings.enabledPlugins['claude-mem@DaBianYLK'] = true;
 
   writeJsonFile(CLAUDE_SETTINGS_PATH, settings);
 }

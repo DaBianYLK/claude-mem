@@ -5,9 +5,9 @@
   <br>
   <a href="https://github.com/DaBianYLK/claude-mem">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/claude-mem-logo-for-dark-mode.webp">
-      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/claude-mem-logo-for-light-mode.webp">
-      <img src="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/claude-mem-logo-for-light-mode.webp" alt="Claude-Mem" width="400">
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/DaBianYLK/claude-mem/main/docs/public/claude-mem-logo-for-dark-mode.webp">
+      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/DaBianYLK/claude-mem/main/docs/public/claude-mem-logo-for-light-mode.webp">
+      <img src="https://raw.githubusercontent.com/DaBianYLK/claude-mem/main/docs/public/claude-mem-logo-for-light-mode.webp" alt="Claude-Mem" width="400">
     </picture>
   </a>
   <br>
@@ -58,7 +58,7 @@
   <a href="package.json">
     <img src="https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg" alt="Node">
   </a>
-  <a href="https://github.com/thedotmack/awesome-claude-code">
+  <a href="https://github.com/DaBianYLK/awesome-claude-code">
     <img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome Claude Code">
   </a>
 </p>
@@ -66,9 +66,9 @@
 <p align="center">
   <a href="https://trendshift.io/repositories/15496" target="_blank">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/trendshift-badge-dark.svg">
-      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/trendshift-badge.svg">
-      <img src="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/trendshift-badge.svg" alt="thedotmack/claude-mem | Trendshift" width="250" height="55"/>
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/DaBianYLK/claude-mem/main/docs/public/trendshift-badge-dark.svg">
+      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/DaBianYLK/claude-mem/main/docs/public/trendshift-badge.svg">
+      <img src="https://raw.githubusercontent.com/DaBianYLK/claude-mem/main/docs/public/trendshift-badge.svg" alt="DaBianYLK/claude-mem | Trendshift" width="250" height="55"/>
     </picture>
   </a>
 </p>
@@ -78,7 +78,7 @@
 <p align="center">
   <a href="https://github.com/DaBianYLK/claude-mem">
     <picture>
-      <img src="https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/cm-preview.gif" alt="Claude-Mem Preview" width="800">
+      <img src="https://raw.githubusercontent.com/DaBianYLK/claude-mem/main/docs/public/cm-preview.gif" alt="Claude-Mem Preview" width="800">
     </picture>
   </a>
 </p>
@@ -104,7 +104,7 @@
 ターミナルで新しいClaude Codeセッションを開始し、次のコマンドを入力します:
 
 ```
-> /plugin marketplace add thedotmack/claude-mem
+> /plugin marketplace add DaBianYLK/claude-mem
 
 > /plugin install claude-mem
 ```
@@ -255,7 +255,7 @@ Endless Modeと試用方法の詳細については、**[ベータ機能ドキ�
 自動ジェネレーターで包括的なバグレポートを作成します:
 
 ```bash
-cd ~/.claude/plugins/marketplaces/thedotmack
+cd ~/.claude/plugins/marketplaces/DaBianYLK
 npm run bug-report
 ```
 
@@ -277,7 +277,7 @@ npm run bug-report
 
 このプロジェクトは**GNU Affero General Public License v3.0**(AGPL-3.0)の下でライセンスされています。
 
-Copyright (C) 2025 Alex Newman (@thedotmack). All rights reserved.
+Copyright (C) 2025 Alex Newman (@DaBianYLK). All rights reserved.
 
 詳細は[LICENSE](LICENSE)ファイルを参照してください。
 
@@ -296,8 +296,8 @@ Copyright (C) 2025 Alex Newman (@thedotmack). All rights reserved.
 
 - **ドキュメント**: [docs/](docs/)
 - **Issues**: [GitHub Issues](https://github.com/DaBianYLK/claude-mem/issues)
-- **リポジトリ**: [github.com/thedotmack/claude-mem](https://github.com/DaBianYLK/claude-mem)
-- **作者**: Alex Newman ([@thedotmack](https://github.com/thedotmack))
+- **リポジトリ**: [github.com/DaBianYLK/claude-mem](https://github.com/DaBianYLK/claude-mem)
+- **作者**: Alex Newman ([@DaBianYLK](https://github.com/DaBianYLK))
 
 ---
 
