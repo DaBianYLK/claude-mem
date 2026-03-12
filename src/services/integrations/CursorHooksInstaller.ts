@@ -11,7 +11,7 @@
 
 import path from 'path';
 import { homedir } from 'os';
-import { existsSync, readFileSync, writeFileSync, unlinkSync, mkdirSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync, unlinkSync, mkdirSync, chmodSync } from 'fs';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { logger } from '../../utils/logger.js';
@@ -29,6 +29,32 @@ const execAsync = promisify(exec);
 
 // Standard paths
 const CURSOR_REGISTRY_FILE = path.join(DATA_DIR, 'cursor-projects.json');
+export const CURSOR_HOOK_WRAPPER_COMMANDS = [
+  'session-init',
+  'context',
+  'observation',
+  'file-edit',
+  'summarize'
+] as const;
+export type CursorHookWrapperCommand = typeof CURSOR_HOOK_WRAPPER_COMMANDS[number];
+
+const LEGACY_BASH_SCRIPTS = [
+  'common.sh',
+  'session-init.sh',
+  'context-inject.sh',
+  'save-observation.sh',
+  'save-file-edit.sh',
+  'session-summary.sh'
+];
+
+const LEGACY_POWERSHELL_SCRIPTS = [
+  'common.ps1',
+  'session-init.ps1',
+  'context-inject.ps1',
+  'save-observation.ps1',
+  'save-file-edit.ps1',
+  'session-summary.ps1'
+];
 
 // ============================================================================
 // Platform Detection
@@ -46,6 +72,68 @@ export function detectPlatform(): Platform {
  */
 export function getScriptExtension(): string {
   return detectPlatform() === 'windows' ? '.ps1' : '.sh';
+}
+
+/**
+ * Cursor hook wrappers are single-file entrypoints so Cursor doesn't need to
+ * invoke a command with inline arguments, which currently triggers DEP0190.
+ */
+export function getCursorHookWrapperExtension(platform: Platform = detectPlatform()): string {
+  return platform === 'windows' ? '.cmd' : '.sh';
+}
+
+export function getCursorHookWrapperFilename(
+  command: CursorHookWrapperCommand,
+  platform: Platform = detectPlatform()
+): string {
+  return `hook-${command}${getCursorHookWrapperExtension(platform)}`;
+}
+
+export function escapeForPosixSingleQuotes(value: string): string {
+  return value.replace(/'/g, '\'\\\'\'');
+}
+
+export function buildCursorHookWrapper(
+  command: CursorHookWrapperCommand,
+  bunPath: string,
+  workerServicePath: string,
+  platform: Platform = detectPlatform()
+): string {
+  if (platform === 'windows') {
+    return `@echo off\r\n"${bunPath}" "${workerServicePath}" hook cursor ${command}\r\n`;
+  }
+
+  const escapedBunPath = escapeForPosixSingleQuotes(bunPath);
+  const escapedWorkerPath = escapeForPosixSingleQuotes(workerServicePath);
+
+  return `#!/usr/bin/env sh\nexec '${escapedBunPath}' '${escapedWorkerPath}' hook cursor ${command}\n`;
+}
+
+function getCursorHookWrapperFiles(platform: Platform): string[] {
+  return CURSOR_HOOK_WRAPPER_COMMANDS.map(command => getCursorHookWrapperFilename(command, platform));
+}
+
+function writeCursorHookWrapper(
+  hooksDir: string,
+  command: CursorHookWrapperCommand,
+  bunPath: string,
+  workerServicePath: string,
+  platform: Platform
+): string {
+  const wrapperPath = path.join(hooksDir, getCursorHookWrapperFilename(command, platform));
+  const wrapperContent = buildCursorHookWrapper(command, bunPath, workerServicePath, platform);
+
+  writeFileSync(wrapperPath, wrapperContent);
+
+  if (platform !== 'windows') {
+    chmodSync(wrapperPath, 0o755);
+  }
+
+  return wrapperPath;
+}
+
+function quoteHookCommandPath(commandPath: string): string {
+  return `"${commandPath.replace(/"/g, '\\"')}"`;
 }
 
 // ============================================================================
@@ -290,8 +378,9 @@ export function configureCursorMcp(target: CursorInstallTarget): number {
 // ============================================================================
 
 /**
- * Install Cursor hooks using unified CLI
- * No longer copies shell scripts - uses node CLI directly
+ * Install Cursor hooks using wrapper scripts around the unified CLI.
+ * Cursor currently emits DEP0190 warnings when hook commands include args.
+ * The wrappers keep each hook command to a single executable path.
  */
 export async function installCursorHooks(target: CursorInstallTarget): Promise<number> {
   console.log(`\nInstalling Claude-Mem Cursor hooks (${target} level)...\n`);
@@ -315,49 +404,78 @@ export async function installCursorHooks(target: CursorInstallTarget): Promise<n
   try {
     // Create target directory
     mkdirSync(targetDir, { recursive: true });
+    const hooksDir = path.join(targetDir, 'hooks');
+    mkdirSync(hooksDir, { recursive: true });
 
-    // Generate hooks.json with unified CLI commands
+    // Generate hooks.json with single-file wrapper commands
     const hooksJsonPath = path.join(targetDir, 'hooks.json');
+    const platform = detectPlatform();
 
     // Find bun executable - required because worker-service.cjs uses bun:sqlite
     const bunPath = findBunPath();
-    const escapedBunPath = bunPath.replace(/\\/g, '\\\\');
-
-    // Use the absolute path to worker-service.cjs
-    // Escape backslashes for JSON on Windows
-    const escapedWorkerPath = workerServicePath.replace(/\\/g, '\\\\');
-
-    // Helper to create hook command using unified CLI with bun runtime
-    const makeHookCommand = (command: string) => {
-      return `"${escapedBunPath}" "${escapedWorkerPath}" hook cursor ${command}`;
-    };
-
     console.log(`  Using Bun runtime: ${bunPath}`);
+
+    const sessionInitWrapper = writeCursorHookWrapper(
+      hooksDir,
+      'session-init',
+      bunPath,
+      workerServicePath,
+      platform
+    );
+    const contextWrapper = writeCursorHookWrapper(
+      hooksDir,
+      'context',
+      bunPath,
+      workerServicePath,
+      platform
+    );
+    const observationWrapper = writeCursorHookWrapper(
+      hooksDir,
+      'observation',
+      bunPath,
+      workerServicePath,
+      platform
+    );
+    const fileEditWrapper = writeCursorHookWrapper(
+      hooksDir,
+      'file-edit',
+      bunPath,
+      workerServicePath,
+      platform
+    );
+    const summarizeWrapper = writeCursorHookWrapper(
+      hooksDir,
+      'summarize',
+      bunPath,
+      workerServicePath,
+      platform
+    );
 
     const hooksJson: CursorHooksJson = {
       version: 1,
       hooks: {
         beforeSubmitPrompt: [
-          { command: makeHookCommand('session-init') },
-          { command: makeHookCommand('context') }
+          { command: quoteHookCommandPath(sessionInitWrapper) },
+          { command: quoteHookCommandPath(contextWrapper) }
         ],
         afterMCPExecution: [
-          { command: makeHookCommand('observation') }
+          { command: quoteHookCommandPath(observationWrapper) }
         ],
         afterShellExecution: [
-          { command: makeHookCommand('observation') }
+          { command: quoteHookCommandPath(observationWrapper) }
         ],
         afterFileEdit: [
-          { command: makeHookCommand('file-edit') }
+          { command: quoteHookCommandPath(fileEditWrapper) }
         ],
         stop: [
-          { command: makeHookCommand('summarize') }
+          { command: quoteHookCommandPath(summarizeWrapper) }
         ]
       }
     };
 
     writeFileSync(hooksJsonPath, JSON.stringify(hooksJson, null, 2));
-    console.log(`  Created hooks.json (unified CLI mode)`);
+    console.log(`  Created hooks.json (wrapper mode)`);
+    console.log(`  Created hook wrappers in: ${hooksDir}`);
     console.log(`  Worker service: ${workerServicePath}`);
 
     // For project-level: create initial context file
@@ -369,7 +487,7 @@ export async function installCursorHooks(target: CursorInstallTarget): Promise<n
 Installation complete!
 
 Hooks installed to: ${targetDir}/hooks.json
-Using unified CLI: bun worker-service.cjs hook cursor <command>
+Using wrapper scripts: ${hooksDir}
 
 Next steps:
   1. Start claude-mem worker: claude-mem start
@@ -379,6 +497,10 @@ Next steps:
 Context Injection:
   Context from past sessions is stored in .cursor/rules/claude-mem-context.mdc
   and automatically included in every chat. It updates after each session ends.
+
+Note:
+  Wrapper scripts keep each Cursor hook command argument-free to avoid
+  the current Node DEP0190 warning emitted by Cursor's hook runner.
 `);
 
     return 0;
@@ -465,13 +587,13 @@ export function uninstallCursorHooks(target: CursorInstallTarget): number {
     const hooksDir = path.join(targetDir, 'hooks');
     const hooksJsonPath = path.join(targetDir, 'hooks.json');
 
-    // Remove legacy shell scripts if they exist (from old installations)
-    const bashScripts = ['common.sh', 'session-init.sh', 'context-inject.sh',
-                        'save-observation.sh', 'save-file-edit.sh', 'session-summary.sh'];
-    const psScripts = ['common.ps1', 'session-init.ps1', 'context-inject.ps1',
-                       'save-observation.ps1', 'save-file-edit.ps1', 'session-summary.ps1'];
-
-    const allScripts = [...bashScripts, ...psScripts];
+    // Remove current wrapper scripts and legacy shell scripts if they exist.
+    const allScripts = [
+      ...LEGACY_BASH_SCRIPTS,
+      ...LEGACY_POWERSHELL_SCRIPTS,
+      ...getCursorHookWrapperFiles('windows'),
+      ...getCursorHookWrapperFiles('unix')
+    ];
 
     for (const script of allScripts) {
       const scriptPath = path.join(hooksDir, script);
@@ -543,16 +665,18 @@ export function checkCursorHooksStatus(): number {
       try {
         const hooksContent = JSON.parse(readFileSync(hooksJson, 'utf-8'));
         const firstCommand = hooksContent?.hooks?.beforeSubmitPrompt?.[0]?.command || '';
+        const hasWrapperScripts =
+          getCursorHookWrapperFiles('windows').some(s => existsSync(path.join(hooksDir, s))) ||
+          getCursorHookWrapperFiles('unix').some(s => existsSync(path.join(hooksDir, s)));
 
         if (firstCommand.includes('worker-service.cjs') && firstCommand.includes('hook cursor')) {
           console.log(`   Mode: Unified CLI (bun worker-service.cjs)`);
+        } else if (hasWrapperScripts) {
+          console.log(`   Mode: Unified CLI wrappers (single-command hook scripts)`);
         } else {
           // Detect legacy shell scripts
-          const bashScripts = ['session-init.sh', 'context-inject.sh', 'save-observation.sh'];
-          const psScripts = ['session-init.ps1', 'context-inject.ps1', 'save-observation.ps1'];
-
-          const hasBash = bashScripts.some(s => existsSync(path.join(hooksDir, s)));
-          const hasPs = psScripts.some(s => existsSync(path.join(hooksDir, s)));
+          const hasBash = LEGACY_BASH_SCRIPTS.some(s => existsSync(path.join(hooksDir, s)));
+          const hasPs = LEGACY_POWERSHELL_SCRIPTS.some(s => existsSync(path.join(hooksDir, s)));
 
           if (hasBash || hasPs) {
             console.log(`   Mode: Legacy shell scripts (consider reinstalling for unified CLI)`);
