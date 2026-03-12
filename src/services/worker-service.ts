@@ -1046,7 +1046,14 @@ async function main() {
 
     case 'stop': {
       await httpShutdown(port);
-      const freed = await waitForPortFree(port, getPlatformTimeout(15000));
+      let freed = await waitForPortFree(port, getPlatformTimeout(15000));
+      if (!freed && process.platform === 'win32') {
+        logger.warn('SYSTEM', 'Port did not free up after shutdown, attempting force release', { port });
+        const released = await forceReleasePort(port);
+        if (released) {
+          freed = await waitForPortFree(port, getPlatformTimeout(5000));
+        }
+      }
       if (!freed) {
         logger.warn('SYSTEM', 'Port did not free up after shutdown', { port });
       }
@@ -1059,7 +1066,14 @@ async function main() {
     case 'restart': {
       logger.info('SYSTEM', 'Restarting worker');
       await httpShutdown(port);
-      const freed = await waitForPortFree(port, getPlatformTimeout(15000));
+      let freed = await waitForPortFree(port, getPlatformTimeout(15000));
+      if (!freed && process.platform === 'win32') {
+        logger.warn('SYSTEM', 'Port did not free up after shutdown, attempting force release for restart', { port });
+        const released = await forceReleasePort(port);
+        if (released) {
+          freed = await waitForPortFree(port, getPlatformTimeout(5000));
+        }
+      }
       if (!freed) {
         logger.error('SYSTEM', 'Port did not free up after shutdown, aborting restart', { port });
         // Exit gracefully: Windows Terminal won't keep tab open on exit 0

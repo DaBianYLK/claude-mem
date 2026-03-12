@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
+import { describe, it, expect, afterEach, mock } from 'bun:test';
+import { createServer } from 'node:net';
 import {
   isPortInUse,
   waitForHealth,
@@ -6,6 +7,31 @@ import {
   getInstalledPluginVersion,
   checkVersionMatch
 } from '../../src/services/infrastructure/index.js';
+
+async function listenOnEphemeralPort() {
+  const server = createServer();
+
+  await new Promise<void>((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', () => resolve());
+  });
+
+  const address = server.address();
+  if (!address || typeof address === 'string') {
+    throw new Error('Failed to resolve ephemeral port');
+  }
+
+  return { server, port: address.port };
+}
+
+async function closeServer(server: ReturnType<typeof createServer>) {
+  await new Promise<void>((resolve, reject) => {
+    server.close((error) => {
+      if (error) reject(error);
+      else resolve();
+    });
+  });
+}
 
 describe('HealthMonitor', () => {
   const originalFetch = global.fetch;
@@ -15,45 +41,21 @@ describe('HealthMonitor', () => {
   });
 
   describe('isPortInUse', () => {
-    it('should return true for occupied port (health check succeeds)', async () => {
-      global.fetch = mock(() => Promise.resolve({ ok: true } as Response));
+    it('should return true for a raw TCP listener even without HTTP health responses', async () => {
+      const { server, port } = await listenOnEphemeralPort();
 
-      const result = await isPortInUse(37777);
-
-      expect(result).toBe(true);
-      expect(global.fetch).toHaveBeenCalledWith('http://127.0.0.1:37777/api/health');
+      try {
+        await expect(isPortInUse(port)).resolves.toBe(true);
+      } finally {
+        await closeServer(server);
+      }
     });
 
-    it('should return false for free port (connection refused)', async () => {
-      global.fetch = mock(() => Promise.reject(new Error('ECONNREFUSED')));
+    it('should return false for a free port', async () => {
+      const { server, port } = await listenOnEphemeralPort();
+      await closeServer(server);
 
-      const result = await isPortInUse(39999);
-
-      expect(result).toBe(false);
-    });
-
-    it('should return false when health check returns non-ok', async () => {
-      global.fetch = mock(() => Promise.resolve({ ok: false, status: 503 } as Response));
-
-      const result = await isPortInUse(37777);
-
-      expect(result).toBe(false);
-    });
-
-    it('should return false on network timeout', async () => {
-      global.fetch = mock(() => Promise.reject(new Error('ETIMEDOUT')));
-
-      const result = await isPortInUse(37777);
-
-      expect(result).toBe(false);
-    });
-
-    it('should return false on fetch failed error', async () => {
-      global.fetch = mock(() => Promise.reject(new Error('fetch failed')));
-
-      const result = await isPortInUse(37777);
-
-      expect(result).toBe(false);
+      await expect(isPortInUse(port)).resolves.toBe(false);
     });
   });
 
@@ -66,7 +68,6 @@ describe('HealthMonitor', () => {
       const elapsed = Date.now() - start;
 
       expect(result).toBe(true);
-      // Should return quickly (within first poll cycle)
       expect(elapsed).toBeLessThan(1000);
     });
 
@@ -78,7 +79,6 @@ describe('HealthMonitor', () => {
       const elapsed = Date.now() - start;
 
       expect(result).toBe(false);
-      // Should take close to timeout duration
       expect(elapsed).toBeGreaterThanOrEqual(1400);
       expect(elapsed).toBeLessThan(2500);
     });
@@ -87,7 +87,6 @@ describe('HealthMonitor', () => {
       let callCount = 0;
       global.fetch = mock(() => {
         callCount++;
-        // Fail first 2 calls, succeed on third
         if (callCount < 3) {
           return Promise.reject(new Error('ECONNREFUSED'));
         }
@@ -106,9 +105,6 @@ describe('HealthMonitor', () => {
 
       await waitForHealth(37777, 1000);
 
-      // waitForHealth uses /api/health (liveness), not /api/readiness
-      // This is because hooks have 15-second timeout but full initialization can take 5+ minutes
-      // See: https://github.com/DaBianYLK/claude-mem/issues/811
       const calls = fetchMock.mock.calls;
       expect(calls.length).toBeGreaterThan(0);
       expect(calls[0][0]).toBe('http://127.0.0.1:37777/api/health');
@@ -117,7 +113,6 @@ describe('HealthMonitor', () => {
     it('should use default timeout when not specified', async () => {
       global.fetch = mock(() => Promise.resolve({ ok: true } as Response));
 
-      // Just verify it doesn't throw and returns quickly
       const result = await waitForHealth(37777);
 
       expect(result).toBe(true);
@@ -128,15 +123,12 @@ describe('HealthMonitor', () => {
     it('should return a valid semver string', () => {
       const version = getInstalledPluginVersion();
 
-      // Should be a string matching semver pattern or 'unknown'
       if (version !== 'unknown') {
         expect(version).toMatch(/^\d+\.\d+\.\d+/);
       }
     });
 
     it('should not throw on ENOENT (graceful degradation)', () => {
-      // The function handles ENOENT internally — should not throw
-      // If package.json exists, it returns the version; if not, 'unknown'
       expect(() => getInstalledPluginVersion()).not.toThrow();
     });
   });
@@ -158,8 +150,6 @@ describe('HealthMonitor', () => {
       } as Response));
 
       const result = await checkVersionMatch(37777);
-
-      // Unless the plugin version is also '0.0.0-definitely-wrong', this should be a mismatch
       const pluginVersion = getInstalledPluginVersion();
       if (pluginVersion !== 'unknown' && pluginVersion !== '0.0.0-definitely-wrong') {
         expect(result.matches).toBe(false);
@@ -168,7 +158,7 @@ describe('HealthMonitor', () => {
 
     it('should detect version match', async () => {
       const pluginVersion = getInstalledPluginVersion();
-      if (pluginVersion === 'unknown') return; // Skip if can't read plugin version
+      if (pluginVersion === 'unknown') return;
 
       global.fetch = mock(() => Promise.resolve({
         ok: true,
@@ -184,55 +174,33 @@ describe('HealthMonitor', () => {
   });
 
   describe('waitForPortFree', () => {
+    it('should stay false while a non-HTTP listener still occupies the port', async () => {
+      const { server, port } = await listenOnEphemeralPort();
+
+      try {
+        await expect(waitForPortFree(port, 250)).resolves.toBe(false);
+      } finally {
+        await closeServer(server);
+      }
+    });
+
+    it('should return true after the listener is closed', async () => {
+      const { server, port } = await listenOnEphemeralPort();
+      await closeServer(server);
+
+      await expect(waitForPortFree(port, 1000)).resolves.toBe(true);
+    });
+
     it('should return true immediately when port is already free', async () => {
-      global.fetch = mock(() => Promise.reject(new Error('ECONNREFUSED')));
+      const { server, port } = await listenOnEphemeralPort();
+      await closeServer(server);
 
       const start = Date.now();
-      const result = await waitForPortFree(39999, 5000);
+      const result = await waitForPortFree(port, 1000);
       const elapsed = Date.now() - start;
 
       expect(result).toBe(true);
-      // Should return quickly
       expect(elapsed).toBeLessThan(1000);
-    });
-
-    it('should timeout when port remains occupied', async () => {
-      global.fetch = mock(() => Promise.resolve({ ok: true } as Response));
-
-      const start = Date.now();
-      const result = await waitForPortFree(37777, 1500);
-      const elapsed = Date.now() - start;
-
-      expect(result).toBe(false);
-      // Should take close to timeout duration
-      expect(elapsed).toBeGreaterThanOrEqual(1400);
-      expect(elapsed).toBeLessThan(2500);
-    });
-
-    it('should succeed when port becomes free', async () => {
-      let callCount = 0;
-      global.fetch = mock(() => {
-        callCount++;
-        // Port occupied for first 2 checks, then free
-        if (callCount < 3) {
-          return Promise.resolve({ ok: true } as Response);
-        }
-        return Promise.reject(new Error('ECONNREFUSED'));
-      });
-
-      const result = await waitForPortFree(37777, 5000);
-
-      expect(result).toBe(true);
-      expect(callCount).toBeGreaterThanOrEqual(3);
-    });
-
-    it('should use default timeout when not specified', async () => {
-      global.fetch = mock(() => Promise.reject(new Error('ECONNREFUSED')));
-
-      // Just verify it doesn't throw and returns quickly
-      const result = await waitForPortFree(39999);
-
-      expect(result).toBe(true);
     });
   });
 });

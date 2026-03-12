@@ -11,21 +11,52 @@
 
 import path from 'path';
 import { readFileSync } from 'fs';
+import { Socket } from 'node:net';
 import { logger } from '../../utils/logger.js';
 import { MARKETPLACE_ROOT } from '../../shared/paths.js';
 
 /**
- * Check if a port is in use by querying the health endpoint
+ * Check if any process is bound to the port.
+ *
+ * This must not depend on the HTTP health endpoint. A zombie process can still
+ * hold the socket open while never answering `/api/health`, and callers need to
+ * detect that situation so they can force-release the port.
  */
 export async function isPortInUse(port: number): Promise<boolean> {
-  try {
-    // Note: Removed AbortSignal.timeout to avoid Windows Bun cleanup issue (libuv assertion)
-    const response = await fetch(`http://127.0.0.1:${port}/api/health`);
-    return response.ok;
-  } catch (error) {
-    // [ANTI-PATTERN IGNORED]: Health check polls every 500ms, logging would flood
+  if (!Number.isInteger(port) || port <= 0 || port > 65535) {
     return false;
   }
+
+  return new Promise((resolve) => {
+    const socket = new Socket();
+    let settled = false;
+
+    const finish = (inUse: boolean) => {
+      if (settled) return;
+      settled = true;
+      socket.destroy();
+      resolve(inUse);
+    };
+
+    socket.setTimeout(500);
+
+    socket.once('connect', () => finish(true));
+    socket.once('timeout', () => {
+      // A localhost timeout is still suspicious; be conservative and treat the
+      // port as occupied so callers don't try to bind over it.
+      finish(true);
+    });
+    socket.once('error', (error: NodeJS.ErrnoException) => {
+      const code = error.code;
+      if (code === 'ECONNREFUSED' || code === 'EHOSTUNREACH' || code === 'ENETUNREACH') {
+        finish(false);
+        return;
+      }
+      finish(true);
+    });
+
+    socket.connect(port, '127.0.0.1');
+  });
 }
 
 /**
